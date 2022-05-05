@@ -64,8 +64,8 @@ actions:
   configure-php:
     - log: Change php config for zabbix needs
     - cmd[${globals.TARGET_NODE_ID}]: |-
-        sed -i '/max_input_time = 60/c\max_input_time = 300' /usr/local/lsws/lsphp8*/etc/php.ini &>> /var/log/run.log
-        sed -i '/date.timezone =/c\date.timezone = Europe/Zurich' /usr/local/lsws/lsphp8*/etc/php.ini &>> /var/log/run.log
+        sed -i '/max_input_time = 60/c\max_input_time = 300' /usr/local/lsws/lsphp7*/etc/php.ini &>> /var/log/run.log
+        sed -i '/date.timezone =/c\date.timezone = Europe/Zurich' /usr/local/lsws/lsphp7*/etc/php.ini &>> /var/log/run.log
 
   add-frontend:
     - log: Download frontend php files and configure the frontend
