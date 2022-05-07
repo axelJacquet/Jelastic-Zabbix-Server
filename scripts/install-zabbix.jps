@@ -76,7 +76,7 @@ actions:
         unzip frontend.zip &>> /var/log/run.log
         rm frontend.zip &>> /var/log/run.log
         sed -i '0,/zabbix/s//${globals.DB_NAME}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
-        sed -i '9s/zabbix/${globals.DB_USER}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        sed -i '8s/zabbix/${globals.DB_USER}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
         sed -i '0,/localhost/s//127.0.0.1/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example 
         DST1='$DB['"'"'DATABASE'"'"']      = '"'"'${globals.DB_NAME}'"'"';'
         sed -i '7d' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
