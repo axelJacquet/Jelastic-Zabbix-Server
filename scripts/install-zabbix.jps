@@ -64,8 +64,8 @@ actions:
   configure-php:
     - log: Change php config for zabbix needs
     - cmd[${globals.TARGET_NODE_ID}]: |-
-        sed -i '/max_input_time = 60/c\max_input_time = 300' /usr/local/lsws/lsphp7*/etc/php.ini &>> /var/log/run.log
-        sed -i '/date.timezone =/c\date.timezone = Europe/Zurich' /usr/local/lsws/lsphp7*/etc/php.ini &>> /var/log/run.log
+        sed -i '/max_input_time = 60/c\max_input_time = 300' /usr/local/lsws/lsphp8*/etc/php.ini &>> /var/log/run.log
+        sed -i '/date.timezone =/c\date.timezone = Europe/Zurich' /usr/local/lsws/lsphp8*/etc/php.ini &>> /var/log/run.log
 
   add-frontend:
     - log: Download frontend php files and configure the frontend
@@ -76,7 +76,7 @@ actions:
         unzip frontend.zip &>> /var/log/run.log
         rm frontend.zip &>> /var/log/run.log
         sed -i '0,/zabbix/s//${globals.DB_NAME}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
-        sed -i '7s/zabbix/${globals.DB_USER}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        sed -i '9s/zabbix/${globals.DB_USER}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
         sed -i '0,/localhost/s//127.0.0.1/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example 
         DST1='$DB['"'"'DATABASE'"'"']      = '"'"'${globals.DB_NAME}'"'"';'
         sed -i '7d' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
