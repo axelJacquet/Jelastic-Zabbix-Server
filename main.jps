@@ -11,6 +11,8 @@ categories:
 - apps/dev-and-admin-tools
 
 skipNodeEmails: true
+engine: php7.4
+
 
 nodes:
   nodeType: llsmp
@@ -18,6 +20,7 @@ nodes:
   cloudlets: 16
   nodeGroup: cp
   skipEmail: true
+  
 
 globals:
   DB_USER: jelastic-${fn.random}
