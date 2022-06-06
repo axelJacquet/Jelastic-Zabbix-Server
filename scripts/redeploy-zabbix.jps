@@ -2,7 +2,7 @@ type: update
 name: Redeploy Zabbix
 description: This installs Zabbix and configures it after redeployment
 logo: images/zabbix.svg
-baseUrl: https://raw.githubusercontent.com/DimitriPicasso/Jelastic-Zabbix-server/master
+baseUrl: https://raw.githubusercontent.com/panslothda/Jelastic-Zabbix-server/master
 skipNodeEmails: true
 
 onInstall:

@@ -2,7 +2,7 @@ type: update
 name: Install Zabbix
 description: This installs Zabbix and configures it
 logo: images/zabbix.svg
-baseUrl: https://raw.githubusercontent.com/DimitriPicasso/Jelastic-Zabbix-Server/master/
+baseUrl: https://raw.githubusercontent.com/panslothda/Jelastic-Zabbix-Server/master/
 skipNodeEmails: true
 
 globals:
