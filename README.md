@@ -13,7 +13,7 @@ Additionally the zabbix agent is installed for the node.
 # Installation
 Simply import this link using the Jelastic JPS Import function:
 ```
-https://raw.githubusercontent.com/panslothda/Jelastic-Zabbix-server/master/main.jps
+https://raw.githubusercontent.com/DimitriPicasso/Jelastic-Zabbix-server/master/main.jps
 ```
 
 Or copy the content of main.jps into the import window.
