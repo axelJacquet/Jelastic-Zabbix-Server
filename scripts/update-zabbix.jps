@@ -1,6 +1,6 @@
 type: update
 name: Zabbix Server Upgrade 
-baseUrl: https://raw.githubusercontent.com/DimitriPicasso/Jelastic-Zabbix-Server/master
+baseUrl: https://raw.githubusercontent.com/panslothda/Jelastic-Zabbix-Server/master
 logo: images/zabbix.svg
 description: |
   This Addon allows you to upgrade the Zabbix Server and frontend.  
