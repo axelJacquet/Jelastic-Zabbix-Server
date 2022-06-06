@@ -1,6 +1,6 @@
 type: install
 name: Zabbix Server
-baseUrl: https://raw.githubusercontent.com/panslothda/Jelastic-Zabbix-Server/master
+baseUrl: https://raw.githubusercontent.com/DimitriPicasso/Jelastic-Zabbix-Server/master
 logo: images/zabbix.svg
 homepage: https://zabbix.com
 description: |
