@@ -57,7 +57,6 @@ addons:
           skipEmail: true
 
 actions:
-
   set-firewall:
     api[cp]:
       - method: environment.security.addrule
