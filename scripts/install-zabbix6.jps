@@ -1,0 +1,110 @@
+type: update
+name: Install Zabbix
+description: This installs Zabbix and configures it
+logo: images/zabbix.svg
+baseUrl: https://raw.githubusercontent.com/axelJacquet/Jelastic-Zabbix-server/master
+skipNodeEmails: true
+
+globals:
+  DB_HOST: "${settings.db_host}"
+  DB_NAME: "zabbix_${fn.random}"
+  DB_USER: "${settings.db_user}"
+  DB_PASS: "${settings.db_pass}"
+  ZABBIX_PASS: "${settings.zabbix_pass}"
+  TARGET_NODE_ID: "${settings.targetNodeID}"
+
+onInstall:
+  - install-zabbix
+  - prepare-mysql
+  - configure-zabbix
+  - configure-php
+  - add-frontend
+  - prepare-for-upgrade-addon
+  - additional-config
+
+actions:
+  install-zabbix:
+    - log: Download and install Zabbix Server
+    - cmd[${globals.TARGET_NODE_ID}]: |-
+        sed -i '/tsflags=nodocs/d' /etc/yum.conf &>> /var/log/run.log
+        rpm --import https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-A14FE591 &>> /var/log/run.log
+        rpm -Uvh https://repo.zabbix.com/zabbix/6.0/rhel/7/x86_64/zabbix-release-6.0-1.el7.noarch.rpm &>> /var/log/run.log
+        yum clean all &>> /var/log/run.log
+        yum install -y zabbix-server-mysql
+        yum install -y zabbix-agent
+        yum install centos-release-scl &>> /var/log/run.log
+      user: root
+      sayYes: true
+
+  prepare-mysql:
+    - log: Create database and add userrights/scheme
+    - cmd[${globals.TARGET_NODE_ID}]: |-
+        mysql -u root -p${globals.DB_PASS} -e "create database ${globals.DB_NAME} character set utf8 collate utf8_bin;" &>> /var/log/run.log
+        zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -u${globals.DB_USER} -p${globals.DB_PASS} ${globals.DB_NAME} &>> /var/log/run.log
+        mysql -u root -p${globals.DB_PASS} -e "update ${globals.DB_NAME}.users set passwd=md5('${globals.ZABBIX_PASS}') where alias='Admin';" &>> /var/log/run.log
+      user: root
+
+  configure-zabbix:
+    - log: Configure Zabbix config files
+    - cmd[${globals.TARGET_NODE_ID}]: |-
+        gpasswd -a litespeed zabbix 
+        chmod 0660 /etc/zabbix/zabbix_server.conf 
+        sed -i '/DBHost=localhost/c\DBHost=127.0.0.1' /etc/zabbix/zabbix_server.conf
+        sed -i '/DBName=zabbix/c\DBName=${globals.DB_NAME}' /etc/zabbix/zabbix_server.conf 
+        sed -i '/DBUser=zabbix/c\DBUser=${globals.DB_USER}' /etc/zabbix/zabbix_server.conf
+        sed -i '/DBPassword=/c\DBPassword=${globals.DB_PASS}' /etc/zabbix/zabbix_server.conf 
+        sed -i '/ListenPort=10051/c\ListenPort=10051' /etc/zabbix/zabbix_server.conf 
+        SERVER=$(hostname)
+        sed -i '171d' /etc/zabbix/zabbix_agentd.conf
+        sed -i "171i Hostname=$SERVER" /etc/zabbix/zabbix_agentd.conf
+        systemctl restart zabbix-server zabbix-agent &>> /var/log/run.log
+        systemctl enable zabbix-server zabbix-agent &>> /var/log/run.log
+      user: root
+
+  configure-php:
+    - log: Change php config for zabbix needs
+    - cmd[${globals.TARGET_NODE_ID}]: |-
+        sed -i '/max_input_time = 60/c\max_input_time = 300' /usr/local/lsws/lsphp8*/etc/php.ini &>> /var/log/run.log
+        sed -i '/date.timezone =/c\date.timezone = Europe/Zurich' /usr/local/lsws/lsphp8*/etc/php.ini &>> /var/log/run.log
+
+  add-frontend:
+    - log: Download frontend php files and configure the frontend
+    - cmd[${globals.TARGET_NODE_ID}]: |-
+        cd /var/www/webroot/ROOT &>> /var/log/run.log
+        rm index.php &>> /var/log/run.log
+        wget ${baseUrl}/frontend/frontend.zip &>> /var/log/run.log
+        unzip frontend.zip &>> /var/log/run.log
+        rm frontend.zip &>> /var/log/run.log
+        sed -i '0,/zabbix/s//${globals.DB_NAME}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        sed -i '8s/zabbix/${globals.DB_USER}/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        sed -i '0,/localhost/s//127.0.0.1/' /var/www/webroot/ROOT/conf/zabbix.conf.php.example 
+        DST1='$DB['"'"'DATABASE'"'"']      = '"'"'${globals.DB_NAME}'"'"';'
+        sed -i '7d' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        sed -i "7i $DST1" /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        DST2='$DB['"'"'PASSWORD'"'"']      = '"'"'${globals.DB_PASS}'"'"';'
+        sed -i '9d' /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        sed -i "9i $DST2" /var/www/webroot/ROOT/conf/zabbix.conf.php.example
+        sed -i 's#/etc/zabbix/web/maintenance.inc.php#/var/www/webroot/ROOT/conf/maintenance.inc.php#g' /var/www/webroot/ROOT/include/classes/core/ZBase.php
+        sed -i 's#/etc/zabbix/web/zabbix.conf.php#/var/www/webroot/ROOT/conf/zabbix.conf.php#g' /var/www/webroot/ROOT/include/classes/core/CConfigFile.php
+        mv /var/www/webroot/ROOT/conf/zabbix.conf.php.example /var/www/webroot/ROOT/conf/zabbix.conf.php
+
+  prepare-for-upgrade-addon:
+    - log: Creates folders and sets rights for the upgrade addon
+    - cmd[${globals.TARGET_NODE_ID}]: |-
+        mkdir -p /opt/zabbix/configs/
+        mkdir /opt/zabbix/frontend/
+        mkdir /opt/zabbix/temp/
+        chgrp -R litespeed /opt/zabbix
+      user: root
+      sayYes: true
+
+# ping right change taken from https://community.pivotal.io/s/article/Linux-ping-command-fails-with-icmp-open-socket--Operation-not-permitted 
+  additional-config:
+    - log: execute miscellanious commands for zabbix server functionality
+    - cmd[${globals.TARGET_NODE_ID}]: |-
+        yum install traceroute &>> /var/log/run.log
+        rpm -vhU https://nmap.org/dist/nmap-7.80-1.x86_64.rpm &>> /var/log/run.log
+        chmod 4755 /bin/ping
+        echo "zabbix  ALL=NOPASSWD: /usr/bin/nmap" | (sudo su -c 'EDITOR="tee" visudo -f /etc/sudoers.d/zabbix')
+      user: root
+      sayYes: true

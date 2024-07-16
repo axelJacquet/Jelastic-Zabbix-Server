@@ -12,14 +12,13 @@ categories:
 
 skipNodeEmails: true
 
-engine: php7.4
-
 nodes:
   nodeType: llsmp
   fixedCloudlets: 4
   cloudlets: 16
   nodeGroup: cp
   skipEmail: true
+  
 
 globals:
   DB_USER: jelastic-${fn.random}
